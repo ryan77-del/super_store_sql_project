@@ -1,0 +1,29 @@
+WITH cal_unit_price AS (
+    SELECT 
+        product_id,
+        ROUND(AVG((sales - discount)::NUMERIC / quantity::NUMERIC), 0) AS unit_price
+    FROM orders
+    WHERE quantity IS NOT NULL
+    GROUP BY product_id
+), missing AS (
+    SELECT
+        ord.product_id,
+        ord.discount,
+        ord.market,
+        ord.region,
+        ord.sales,
+        ord.quantity
+    FROM orders ord
+    WHERE ord.quantity IS NULL
+)
+SELECT 
+    m.product_id,
+    m.discount,
+    m.market,
+    m.region,
+    m.sales,
+    m.quantity,
+    ROUND(m.sales::NUMERIC / c.unit_price::NUMERIC, 0) AS calculated_quantity
+FROM missing m
+JOIN cal_unit_price c
+    ON m.product_id = c.product_id;
