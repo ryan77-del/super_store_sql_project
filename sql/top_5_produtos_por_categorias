@@ -1,0 +1,22 @@
+WITH temp AS (
+SELECT 
+	category,
+	product_name,
+	ROUND(SUM(sales::NUMERIC),2) AS product_total_sales,
+	ROUND(SUM(profit::NUMERIC),2) AS product_total_profit,
+	RANK() OVER(PARTITION BY category ORDER BY 	   SUM(sales::NUMERIC) DESC) AS product_rank
+FROM products p
+JOIN orders ord ON ord.product_id = p.product_id
+GROUP BY category,product_name
+)
+
+SELECT 		  
+	category,
+	product_name,
+	product_total_sales,
+	product_total_profit,
+	product_rank
+FROM temp
+WHERE product_rank < 6
+ORDER BY  category,product_rank
+
